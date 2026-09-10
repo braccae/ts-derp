@@ -2,7 +2,7 @@ module ts-derp
 
 go 1.26.6
 
-require tailscale.com v1.102.3
+require tailscale.com v1.102.3 // indirect
 
 require (
 	filippo.io/edwards25519 v1.2.0 // indirect
@@ -44,3 +44,5 @@ require (
 	golang.zx2c4.com/wireguard/windows v0.5.3 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
 )
+
+tool tailscale.com/cmd/derper

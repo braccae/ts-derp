@@ -7,7 +7,7 @@ A minimal, secure containerization of Tailscale's DERP (Designated Encrypted Rel
 - **Pure Minimal `scratch` Image**: Multi-stage build that compiles a statically linked Go binary (`CGO_ENABLED=0`) with symbol/DWARF stripping (`-s -w -extldflags '-static'`). The runtime image contains only the statically linked binary.
 - **Multi-Architecture Support**: Built with `--platform=$BUILDPLATFORM` cross-compilation for native fast builds targeting both `linux/amd64` and `linux/arm64`.
 - **Automated Dependency Updates via Dependabot**:
-  - Pinned and tracked via [tools.go](file:///home/pants/Projects/container_projects/ts-derp/tools.go) and [go.mod](file:///home/pants/Projects/container_projects/ts-derp/go.mod).
+  - Pinned and tracked natively via the Go `tool` directive in [go.mod](file:///home/pants/Projects/container_projects/ts-derp/go.mod).
   - Dependabot polls daily for new releases of `tailscale.com`.
   - Automatically raises PRs when new Tailscale versions are available.
 - **CI/CD with GitHub Actions**: Multi-arch build pipeline that tests the container and pushes to GitHub Container Registry (`ghcr.io`).
@@ -17,8 +17,7 @@ A minimal, secure containerization of Tailscale's DERP (Designated Encrypted Rel
 ## Repository Structure
 
 - [Dockerfile](file:///home/pants/Projects/container_projects/ts-derp/Dockerfile): Multi-stage build compiling static `derper` and packaging into `scratch`.
-- [tools.go](file:///home/pants/Projects/container_projects/ts-derp/tools.go): Declares `tailscale.com/cmd/derper` as a tool dependency to ensure `go.mod` retains the dependency.
-- [go.mod](file:///home/pants/Projects/container_projects/ts-derp/go.mod) & [go.sum](file:///home/pants/Projects/container_projects/ts-derp/go.sum): Tracks the exact version of Tailscale.
+- [go.mod](file:///home/pants/Projects/container_projects/ts-derp/go.mod) & [go.sum](file:///home/pants/Projects/container_projects/ts-derp/go.sum): Tracks the exact version of Tailscale and pins `tool tailscale.com/cmd/derper`.
 - [.github/dependabot.yml](file:///home/pants/Projects/container_projects/ts-derp/.github/dependabot.yml): Configures daily Go module updates and weekly Docker/Actions updates.
 - [.github/workflows/build.yml](file:///home/pants/Projects/container_projects/ts-derp/.github/workflows/build.yml): GitHub Actions workflow for build, test, and container registry publishing.
 - [compose.yaml](file:///home/pants/Projects/container_projects/ts-derp/compose.yaml): Example Docker Compose configuration.

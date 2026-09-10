@@ -9,7 +9,7 @@ ARG TARGETARCH
 WORKDIR /src
 
 # Copy module definitions and pre-download dependencies
-COPY go.mod go.sum tools.go ./
+COPY go.mod go.sum ./
 RUN go mod download
 
 # Compile statically linked derper binary for the target architecture
