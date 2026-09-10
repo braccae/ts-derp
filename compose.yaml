@@ -17,4 +17,5 @@ services:
       - "--certdir=/certs"
       - "--certmode=letsencrypt"
       - "--stun=true"
+      # - "--acme-email=admin@example.com" # Optional ACME contact email for Let's Encrypt
       # - "--verify-clients=true" # Enable if verifying clients via tailscaled

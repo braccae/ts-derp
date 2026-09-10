@@ -3,6 +3,8 @@
 # Stage 1: Build statically linked binary using host platform Go compiler
 FROM --platform=$BUILDPLATFORM golang:alpine AS builder
 
+RUN apk add --no-cache ca-certificates
+
 ARG TARGETOS
 ARG TARGETARCH
 
@@ -19,9 +21,11 @@ RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH:-amd64} go build \
     -o /bin/derper \
     tailscale.com/cmd/derper
 
-# Stage 2: Final minimal scratch container containing only the binary
+# Stage 2: Final minimal scratch container containing the binary and CA certificates
 FROM scratch
 
+# Copy root CA certificates for TLS verification and ACME / Let's Encrypt communication
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /bin/derper /derper
 
 EXPOSE 443/tcp 80/tcp 3478/udp
