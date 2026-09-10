@@ -7,13 +7,11 @@ ContainerName=derper
 Image=ghcr.io/braccae/ts-derp:latest
 Pod=derp.pod
 
-# Mount the shared socket volume so --verify-clients can query tailscaled.sock
-Volume=%h/.local/share/tailscale-run:/var/run/tailscale:z
+# Persistent named volume for Let's Encrypt / ACME certificates
+Volume=derper-certs:/certs
+# Note: /var/run/tailscale is automatically inherited from derp.pod
 
-# Persistent storage for Let's Encrypt / ACME certificates
-Volume=%h/.local/share/derper-certs:/certs:Z
-
-# Flags: Use --certdir to store ACME certs (avoid -c which expects a JSON config file)
+# Flags: Uses shared /var/run/tailscale/tailscaled.sock inherited from derp.pod
 Exec=--hostname=derp.yourdomain.com --certdir=/certs --certmode=letsencrypt --verify-clients=true -a=:443 -http-port=80 -stun=true
 
 [Install]

@@ -8,5 +8,10 @@ PublishPort=443:443/tcp
 PublishPort=80:80/tcp
 PublishPort=3478:3478/udp
 
+# Shared named volume for the Tailscale local API socket.
+# Declaring this at the Pod level automatically mounts /var/run/tailscale
+# into every container joined to this pod (tailscaled and derper).
+Volume=tailscale-run:/var/run/tailscale
+
 [Install]
 WantedBy=default.target

@@ -103,11 +103,11 @@ docker compose logs -f derper
 
 To prevent your DERP server from being used as a public open relay, run `derper` with `--verify-clients=true` alongside a lightweight `tailscaled` container in a shared Pod.
 
-The repository provides production-ready Quadlet files in the [quadlet/](file:///home/pants/Projects/container_projects/ts-derp/quadlet) directory:
+The repository provides production-ready Quadlet files in the [quadlet/](file:///home/pants/Projects/container_projects/ts-derp/quadlet) directory using named volumes:
 
-1. **[derp.pod](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derp.pod)**: Creates a shared network pod exposing ports `443`, `80`, and `3478/udp`.
-2. **[tailscaled.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/tailscaled.container)**: Runs the Tailscale daemon in userspace mode (`TS_USERSPACE=true`) connected to your tailnet and generates `/var/run/tailscale/tailscaled.sock` in a shared volume.
-3. **[derper.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derper.container)**: Mounts the shared Tailscale socket to verify connecting clients, uses `--certdir=/certs` for Let's Encrypt certificates, and binds inside the pod.
+1. **[derp.pod](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derp.pod)**: Creates the shared network pod exposing ports `443`, `80`, and `3478/udp`, and defines the shared named volume `Volume=tailscale-run:/var/run/tailscale`. Any container joined to this pod automatically inherits this mount.
+2. **[tailscaled.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/tailscaled.container)**: Runs the Tailscale daemon in userspace mode (`TS_USERSPACE=true`), connected to your tailnet, writing its local API socket `tailscaled.sock` directly into the pod-shared volume, and preserving its node identity via named volume `tailscale-state:/var/lib/tailscale`.
+3. **[derper.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derper.container)**: Automatically accesses `/var/run/tailscale/tailscaled.sock` via the pod to verify connecting tailnet clients (`--verify-clients=true`), storing Let's Encrypt certificates in named volume `derper-certs:/certs`. No manual host directory creation or bind-mount permission tweaking is required.
 
 #### Installation & Deployment
 
