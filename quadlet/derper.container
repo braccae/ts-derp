@@ -1,0 +1,20 @@
+[Unit]
+Description=Tailscale Custom DERP Relay Container
+After=tailscaled.service derp-pod.service
+
+[Container]
+ContainerName=derper
+Image=ghcr.io/braccae/ts-derp:latest
+Pod=derp.pod
+
+# Mount the shared socket volume so --verify-clients can query tailscaled.sock
+Volume=%h/.local/share/tailscale-run:/var/run/tailscale:z
+
+# Persistent storage for Let's Encrypt / ACME certificates
+Volume=%h/.local/share/derper-certs:/certs:Z
+
+# Flags: Use --certdir to store ACME certs (avoid -c which expects a JSON config file)
+Exec=--hostname=derp.yourdomain.com --certdir=/certs --certmode=letsencrypt --verify-clients=true -a=:443 -http-port=80 -stun=true
+
+[Install]
+WantedBy=default.target

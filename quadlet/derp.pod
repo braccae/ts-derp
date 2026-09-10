@@ -1,0 +1,12 @@
+[Unit]
+Description=Tailscale DERP Pod
+
+[Pod]
+PodName=derp
+# Publish ports at the Pod level (inherited by all containers in the pod)
+PublishPort=443:443/tcp
+PublishPort=80:80/tcp
+PublishPort=3478:3478/udp
+
+[Install]
+WantedBy=default.target

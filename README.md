@@ -22,6 +22,7 @@ A minimal, secure containerization of Tailscale's DERP (Designated Encrypted Rel
 - [.github/dependabot.yml](file:///home/pants/Projects/container_projects/ts-derp/.github/dependabot.yml): Configures daily Go module updates and weekly Docker/Actions updates.
 - [.github/workflows/build.yml](file:///home/pants/Projects/container_projects/ts-derp/.github/workflows/build.yml): GitHub Actions workflow for build, test, and container registry publishing.
 - [compose.yaml](file:///home/pants/Projects/container_projects/ts-derp/compose.yaml): Example Docker Compose configuration with volume mounting for cert persistence.
+- [quadlet/](file:///home/pants/Projects/container_projects/ts-derp/quadlet): Systemd Quadlet files ([derp.pod](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derp.pod), [tailscaled.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/tailscaled.container), [derper.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derper.container)) for rootless Podman deployment with tailnet client verification.
 
 ---
 
@@ -97,6 +98,43 @@ Check the logs to verify ACME certificate acquisition:
 ```bash
 docker compose logs -f derper
 ```
+
+### Rootless Podman Deployment with systemd Quadlets (Client Verification)
+
+To prevent your DERP server from being used as a public open relay, run `derper` with `--verify-clients=true` alongside a lightweight `tailscaled` container in a shared Pod.
+
+The repository provides production-ready Quadlet files in the [quadlet/](file:///home/pants/Projects/container_projects/ts-derp/quadlet) directory:
+
+1. **[derp.pod](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derp.pod)**: Creates a shared network pod exposing ports `443`, `80`, and `3478/udp`.
+2. **[tailscaled.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/tailscaled.container)**: Runs the Tailscale daemon in userspace mode (`TS_USERSPACE=true`) connected to your tailnet and generates `/var/run/tailscale/tailscaled.sock` in a shared volume.
+3. **[derper.container](file:///home/pants/Projects/container_projects/ts-derp/quadlet/derper.container)**: Mounts the shared Tailscale socket to verify connecting clients, uses `--certdir=/certs` for Let's Encrypt certificates, and binds inside the pod.
+
+#### Installation & Deployment
+
+1. **Allow Unprivileged Ports (Debian / Linux)**:
+   Because rootless Podman binds to privileged ports 80 and 443, allow rootless port bindings:
+   ```bash
+   echo 'net.ipv4.ip_unprivileged_port_start=80' | sudo tee /etc/sysctl.d/99-rootless-ports.conf
+   sudo sysctl --system
+   ```
+
+2. **Copy Quadlet Files**:
+   ```bash
+   mkdir -p ~/.config/containers/systemd/
+   cp quadlet/* ~/.config/containers/systemd/
+   ```
+
+3. **Configure Variables**:
+   - In `~/.config/containers/systemd/tailscaled.container`: Set `TS_AUTHKEY` to an auth key from your Tailscale admin console.
+   - In `~/.config/containers/systemd/derper.container`: Update `--hostname=derp.yourdomain.com` with your public DNS record.
+
+4. **Start & Enable Services**:
+   ```bash
+   systemctl --user daemon-reload
+   systemctl --user start tailscaled.service derper.service
+   systemctl --user enable tailscaled.service derper.service
+   loginctl enable-linger $USER
+   ```
 
 ---
 

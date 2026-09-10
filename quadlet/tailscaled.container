@@ -1,0 +1,24 @@
+[Unit]
+Description=Tailscale Daemon Container (Client Verification for DERP)
+After=derp-pod.service
+
+[Container]
+ContainerName=tailscaled
+Image=docker.io/tailscale/tailscale:latest
+Pod=derp.pod
+
+# Run in userspace networking mode (no /dev/net/tun needed)
+Environment=TS_USERSPACE=true
+Environment=TS_AUTH_ONCE=true
+Environment=TS_STATE_DIR=/var/lib/tailscale
+
+# Replace with an auth key from your Tailscale admin console (ephemeral or reusable)
+Environment=TS_AUTHKEY=tskey-auth-xxxxxxxxxxxxxxxxx
+
+# Persistent state volume so Tailscale preserves node identity across restarts
+Volume=%h/.local/share/tailscale-state:/var/lib/tailscale:Z
+# Shared volume for the local API socket (using :z for sharing across containers)
+Volume=%h/.local/share/tailscale-run:/var/run/tailscale:z
+
+[Install]
+WantedBy=default.target
