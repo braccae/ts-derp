@@ -1,0 +1,9 @@
+# Binaries
+derper
+*.exe
+*.test
+
+# Logs and temp files
+*.log
+scratch/
+.tmp/

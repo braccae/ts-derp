@@ -1,0 +1,20 @@
+services:
+  derper:
+    build:
+      context: .
+    image: ts-derp:latest
+    container_name: ts-derp
+    restart: unless-stopped
+    ports:
+      - "443:443/tcp"
+      - "80:80/tcp"
+      - "3478:3478/udp"
+    volumes:
+      # Mount directory for Let's Encrypt / ACME cert cache
+      - ./certs:/certs
+    command:
+      - "--hostname=derp.example.com"
+      - "--certdir=/certs"
+      - "--certmode=letsencrypt"
+      - "--stun=true"
+      # - "--verify-clients=true" # Enable if verifying clients via tailscaled
